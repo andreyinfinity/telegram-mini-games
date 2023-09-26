@@ -60,7 +60,7 @@ async def choose_level_bulls_cows(message: Message, state: FSMContext):
     await message.reply("Отличный выбор!", reply_markup=types.ReplyKeyboardRemove())
     await message.answer("Правила игры:\nНеобходимо угадать загаданное число, состоящее из разных цифр. "
                          "Если цифра есть в числе, но стоит не на своем месте - это корова. "
-                         "Если цифра стоит на правильном месте - это бык. Выбери сложность игры:",
+                         "Если цифра стоит на правильном месте - это бык. Выберите сложность игры:",
                          reply_markup=make_keyboard_bc_lvl(bc_levels))
     # Установка состояния выбора сложности
     await state.set_state(Games.bools_cows_level)
@@ -88,6 +88,15 @@ async def run_bulls_cows(message: Message, state: FSMContext):
                              reply_markup=types.ReplyKeyboardRemove())
 
 
+async def exit_game(message: Message, state: FSMContext):
+    if message.text in ("stop", "quit", "exit", "закончить", "стоп", "выход"):
+        await state.set_state(Games.bools_cows_level)
+        await message.answer("😔")
+        await message.answer(f"{message.from_user.first_name}, очень жаль, "
+                             f"что вы не хотите больше играть. Жду вас снова.",
+                             reply_markup=make_keyboard_games())
+
+
 @dp.message(Games.bools_cows)
 async def check_number(message: Message, state: FSMContext):
     """Фильтр на состояние легкий уровень сложности"""
@@ -111,7 +120,10 @@ async def check_number(message: Message, state: FSMContext):
                                  reply_markup=make_keyboard_bc_lvl(bc_levels))
     # Если число некорректно, выводится сообщение о соответствующей ошибке
     else:
-        await message.answer(text=check[1])
+        if message.text in ("stop", "quit", "закончить", "стоп", "выход"):
+            await exit_game(message, state)
+        else:
+            await message.answer(text=check[1])
 
 
 @dp.message(Games.bools_cows_level)
