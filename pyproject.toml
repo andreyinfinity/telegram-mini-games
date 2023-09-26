@@ -8,6 +8,7 @@ packages = [{include = "bulls_and_cows"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+aiogram = "^3.1.0"
 
 
 [build-system]
