@@ -57,13 +57,13 @@ async def command_start_handler(message: Message, state: FSMContext) -> None:
 async def choose_level_bulls_cows(message: Message, state: FSMContext):
     """Фильтр на текст быки и коровы при условии, что состояние choosing_game.
     В других состояниях фильтр не обрабатывается."""
-    await message.reply("Отличный выбор!", reply_markup=types.ReplyKeyboardRemove())
+    # Установка состояния выбора сложности
+    await state.set_state(Games.bools_cows_level)
+    await message.reply("Отличный выбор!")
     await message.answer("Правила игры:\nНеобходимо угадать загаданное число, состоящее из разных цифр. "
                          "Если цифра есть в числе, но стоит не на своем месте - это корова. "
                          "Если цифра стоит на правильном месте - это бык. Выберите сложность игры:",
                          reply_markup=make_keyboard_bc_lvl(bc_levels))
-    # Установка состояния выбора сложности
-    await state.set_state(Games.bools_cows_level)
 
 
 @dp.message(Games.bools_cows_level, F.text.in_(bc_levels))
@@ -81,11 +81,15 @@ async def run_bulls_cows(message: Message, state: FSMContext):
         await state.set_state(Games.bools_cows)
         await message.answer(text="Введите 4-значное число",
                              reply_markup=types.ReplyKeyboardRemove())
-    else:
+    elif message.text.lower() == bc_levels[2]:
         await state.update_data(bc=BullsCows("5"))
         await state.set_state(Games.bools_cows)
         await message.answer(text="Введите 5-значное число",
                              reply_markup=types.ReplyKeyboardRemove())
+    else:
+        await state.set_state(Games.choosing_game)
+        await message.answer(text="<- К выбору игры",
+                             reply_markup=make_keyboard_games())
 
 
 async def exit_game(message: Message, state: FSMContext):
@@ -94,7 +98,7 @@ async def exit_game(message: Message, state: FSMContext):
         await message.answer("😔")
         await message.answer(f"{message.from_user.first_name}, очень жаль, "
                              f"что вы не хотите больше играть. Жду вас снова.",
-                             reply_markup=make_keyboard_games())
+                             reply_markup=make_keyboard_bc_lvl(bc_levels))
 
 
 @dp.message(Games.bools_cows)
@@ -126,11 +130,12 @@ async def check_number(message: Message, state: FSMContext):
             await message.answer(text=check[1])
 
 
-@dp.message(Games.bools_cows_level)
-async def bull_cows_incorrect_level(message: Message):
+@dp.message(Games.bools_cows_level, F.text == "<  К выбору игры")
+async def bull_cows_incorrect_level(message: Message, state: FSMContext):
     """Отработка неверно введенного уровня сложности"""
-    await message.answer(text="непонятный уровень сложности",
-                         reply_markup=make_keyboard_bc_lvl(bc_levels))
+    await state.set_state(Games.choosing_game)
+    await message.answer(text="Выберите игру",
+                         reply_markup=make_keyboard_games())
 
 
 @dp.message()
