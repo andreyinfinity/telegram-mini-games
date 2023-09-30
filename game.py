@@ -35,7 +35,7 @@ class Cities:
                 return city
 
     def load_cities(self):
-        with open(Path.joinpath("data", "russian-cities.json"), "r", encoding="utf-8") as file:
+        with open(Path.joinpath(Path(__file__).parent, "data", "russian-cities.json"), "r", encoding="utf-8") as file:
             return json.load(file)
 
     def get_last_char(self, word: str) -> str:
