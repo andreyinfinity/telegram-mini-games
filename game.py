@@ -3,30 +3,58 @@ import random
 
 
 class Cities:
-    miss_char = ["й", "ь", "ы", "ъ", "ё"]
-    used_cities = []
+    miss_char = ["й", "ь", "ы", "ъ", "ё", "ц"]
 
-    def __init__(self):
-        self.cities = self.load_cities()
+    def __init__(self, level: str):
+        self.cities: list[dict] = self.load_cities()
+        self.used_cities = []
+        self.population = self.set_population(level)
+        self.last_char: str = random.choice("абвгдежзиклмнопрстуфхчшщэюя")
 
-    def random_city(self) :
-        city = random.choice(self.cities)
-        self.cities.remove(city)
-        return city
+    def set_population(self, level):
+        """Минимальное население для поиска города зависит от уровня сложности"""
+        if level == "1":
+            return 200_000
+        elif level == "2":
+            return 20_000
+        elif level == "3":
+            return 0
+        else:
+            return 500_000
+
+    def random_city(self, char: str) -> str:
+        """Перемешиваем список городов, находим город с населением больше level"""
+        random.shuffle(self.cities)
+        for item in self.cities:
+            city = item.get('name')
+            if self.population < item.get('population') and city[0].upper() == char.upper():
+                self.cities.remove(item)
+                self.used_cities.append(city)
+                self.last_char = self.get_last_char(city).lower()
+                return city
 
     def load_cities(self):
-        with open("data/cities.json", "r", encoding="utf-8") as file:
+        with open("data/russian-cities.json", "r", encoding="utf-8") as file:
             return json.load(file)
 
-    def get_last_char(self, word: str):
+    def get_last_char(self, word: str) -> str:
         if word[-1] in self.miss_char:
             return word[-2]
         return word[-1]
 
-    # def check_city(self, city: str):
-    #     if city.capitalize() in self.used_cities:
-    #         print("Такой город уже назывался")
-    #     elif city.capitalize() in self.cities
+    def check_city(self, city: str) -> tuple[bool, str]:
+        if city.lower()[0] != self.last_char:
+            return False, f"Нужно назвать город на букву {self.last_char.upper()}"
+        if city.lower() in self.used_cities:
+            return False, "Такой город уже назывался"
+        else:
+            for item in self.cities:
+                if item.get('name').lower() == city.lower().strip():
+                    self.used_cities.append(item.get('name').lower())
+                    self.cities.remove(item)
+                    return True, (f"Верно, местонахождение города - {item.get('subject')}\n"
+                                  f"В нем проживает примерно {round(item.get('population'), -3)} человек")
+            return False, "К сожалению я не знаю такого города в России"
 
 
 class BullsCows:
