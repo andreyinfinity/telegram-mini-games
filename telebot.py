@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 from aiogram.fsm.state import StatesGroup, State
-
+import random
 from config import TBOT_API
 from game import BullsCows, Cities
 from keyboard import make_keyboard_games, make_keyboard_lvl
@@ -134,7 +134,7 @@ async def run_game_cities(message: Message, state: FSMContext):
         next_city = city.random_city(city_last_char)
         next_city_last_char = city.get_last_char(next_city).upper()
         if next_city:
-            await message.answer("😀")
+            await message.answer(random.choice(["😀", "😜", "🤗", "🔥", "🥳", "🎊"]))
             await message.answer(f"{check[1]}\n\n{next_city}\n"
                                  f"Назовите город на букву "
                                  f"<b>{next_city_last_char}</b>")
